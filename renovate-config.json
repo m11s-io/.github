@@ -1,0 +1,29 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:best-practices"
+  ],
+  "packageRules": [
+    {
+      "description": "Wait seven days before proposing third-party npm and Docker updates",
+      "matchDatasources": [
+        "npm",
+        "docker"
+      ],
+      "minimumReleaseAge": "7 days",
+      "minimumReleaseAgeBehaviour": "timestamp-required",
+      "internalChecksFilter": "strict"
+    },
+    {
+      "description": "Our maintained Docker images have already passed the upstream cooldown and CI",
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchPackageNames": [
+        "/^m11s\\//",
+        "/^docker\\.io\\/m11s\\//"
+      ],
+      "minimumReleaseAge": "0 days"
+    }
+  ]
+}
