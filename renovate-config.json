@@ -16,10 +16,11 @@
   },
   "packageRules": [
     {
-      "description": "Wait seven days before proposing third-party npm and Docker updates",
+      "description": "Wait seven days before proposing third-party npm, Docker, and PyPI updates",
       "matchDatasources": [
         "npm",
-        "docker"
+        "docker",
+        "pypi"
       ],
       "minimumReleaseAge": "7 days",
       "minimumReleaseAgeBehaviour": "timestamp-required",
