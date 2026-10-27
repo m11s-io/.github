@@ -3,6 +3,17 @@
   "extends": [
     "config:best-practices"
   ],
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "minimumReleaseAge": "0 days",
+    "prCreation": "immediate",
+    "dependencyDashboardApproval": false,
+    "automerge": true,
+    "automergeType": "pr",
+    "platformAutomerge": false,
+    "rebaseWhen": "behind-base-branch",
+    "ignoreTests": false
+  },
   "packageRules": [
     {
       "description": "Wait seven days before proposing third-party npm and Docker updates",
