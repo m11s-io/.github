@@ -16,6 +16,9 @@ module.exports = {
   requireConfig: 'optional',
   dryRun: dryRun === 'true' ? 'full' : null,
   repositoryCache: 'disabled',
+  // Repository rules may opt normal dependencies back in after the preset.
+  // Alert-generated force.enabled=true rules are appended last by Renovate.
+  packageRules: security ? [{ matchPackageNames: ['*'], force: { enabled: false } }] : [],
   customEnvVariables: { UV_EXCLUDE_NEWER: security ? 'false' : '14 days' },
   force: {
     branchPrefix: security ? 'renovate-security/' : 'renovate-selfhosted/',

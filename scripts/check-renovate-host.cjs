@@ -17,6 +17,7 @@ for (const mode of ['routine', 'security']) {
     assert.equal(c.force.vulnerabilityAlerts.ignoreTests, false);
     if (mode === 'security') {
       assert(c.extends.includes('security:only-security-updates'));
+      assert.equal(c.packageRules[0].force.enabled, false);
       assert.equal(c.force.lockFileMaintenance.enabled, false);
     } else {
       assert(!c.extends.includes('security:only-security-updates'));

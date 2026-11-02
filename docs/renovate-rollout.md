@@ -17,10 +17,11 @@ full dry runs until the repository is explicitly enabled for live execution.
   `UV_EXCLUDE_NEWER=false`; immediate vulnerability PRs, auto-merge only after
   checks pass; no lock-file-maintenance updates.
 
-The security run must be checked for non-security update proposals before live
-cutover, particularly where repository package rules explicitly re-enable
-updates. Repository rules can override preset defaults. Do not treat a passing
-configuration validator as proof of security-only behavior.
+The security run force-disables normal dependencies so repository opt-in rules
+cannot re-enable them; Renovate appends vulnerability-alert force-enable rules
+afterward. The audit found one such ordinary opt-in in helm-charts. Check the
+resolved security run for non-security update proposals before live cutover.
+Do not treat a passing configuration validator as proof of end-to-end behavior.
 
 ## One-time GitHub App setup
 
