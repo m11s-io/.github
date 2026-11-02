@@ -1,0 +1,30 @@
+# Managed by infra/github; edit the shared workflow or its OpenTofu settings.
+name: Renovate
+
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: Inspect updates without writing to GitHub
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: self-hosted-renovate
+  cancel-in-progress: false
+
+jobs:
+  renovate:
+    if: ${{ github.event_name == 'workflow_dispatch' || false }}
+    uses: m11s-io/.github/.github/workflows/renovate.yml@cf6c8fbf776dded8ef7fdc97440a859265c2ad56
+    with:
+      host-ref: cf6c8fbf776dded8ef7fdc97440a859265c2ad56
+      live: ${{ false && (github.event_name != 'workflow_dispatch' || !inputs.dry-run) }}
+    secrets:
+      RENOVATE_APP_ID: ${{ secrets.RENOVATE_APP_ID }}
+      RENOVATE_APP_PRIVATE_KEY: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
