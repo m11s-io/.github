@@ -16,5 +16,21 @@
     "platformAutomerge": false,
     "rebaseWhen": "behind-base-branch",
     "ignoreTests": false
-  }
+  },
+  "packageRules": [
+    {
+      "description": "Apply the organization cooldown after inherited datasource rules",
+      "matchPackageNames": [
+        "*"
+      ],
+      "minimumReleaseAge": "14 days"
+    },
+    {
+      "description": "Lock refreshes enforce release age in the package manager",
+      "matchUpdateTypes": [
+        "lockFileMaintenance"
+      ],
+      "minimumReleaseAge": null
+    }
+  ]
 }
