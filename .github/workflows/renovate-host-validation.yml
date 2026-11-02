@@ -1,0 +1,35 @@
+name: Validate Renovate host
+
+on:
+  pull_request:
+    paths:
+      - renovate-host.cjs
+      - .github/workflows/renovate.yml
+      - .github/workflows/renovate-host-validation.yml
+      - scripts/check-renovate-host.cjs
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        mode: [routine, security]
+    env:
+      M11S_RENOVATE_MODE: ${{ matrix.mode }}
+      M11S_RENOVATE_REPOSITORY: m11s-io/docker-images
+      M11S_RENOVATE_DRY_RUN: 'true'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: node scripts/check-renovate-host.cjs
+      - name: Validate resolved host options
+        run: >-
+          docker run --rm
+          -e M11S_RENOVATE_MODE -e M11S_RENOVATE_REPOSITORY -e M11S_RENOVATE_DRY_RUN
+          -v "$GITHUB_WORKSPACE:/config:ro"
+          ghcr.io/renovatebot/renovate:44.200.0
+          renovate-config-validator --strict /config/renovate-host.cjs
