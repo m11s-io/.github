@@ -50,9 +50,10 @@ No app code, web server, OAuth callback, or webhook endpoint is needed.
 4. Install the App on the repositories in
    `infra/github/files/renovate-repositories.json`, or use the
    `renovate_installation_repositories` OpenTofu output. Keep Mend installed for now.
-5. Generate an App private key. Store the App ID as organization Actions secret
-   `RENOVATE_APP_ID` and the PEM contents as `RENOVATE_APP_PRIVATE_KEY`.
-   Grant both secrets to the same selected repositories. Do not paste the PEM
+5. Set organization Actions variable `RENOVATE_CLIENT_ID` to the public App
+   client ID (`Iv23liIjuRn3Blcl6ZV0`). Generate an App private key and store the PEM
+   contents as organization Actions secret `RENOVATE_APP_PRIVATE_KEY`.
+   Grant the variable and secret to the selected repositories. Do not paste the PEM
    into chat or commit it. The existing infrastructure App's provider cannot
    create these organization secrets; an organization owner must do this setup.
 6. For OpenTofu deployment of `.github/workflows/renovate.yml`, give the existing
