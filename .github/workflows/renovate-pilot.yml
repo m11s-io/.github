@@ -1,0 +1,55 @@
+name: Renovate pilot
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/renovate-pilot.yml
+      - renovate-pilot.cjs
+
+permissions:
+  contents: read
+
+concurrency:
+  group: renovate-pilot
+  cancel-in-progress: false
+
+jobs:
+  dry-run:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Prepare logs
+        run: mkdir -p /tmp/renovate-pilot && chmod 0777 /tmp/renovate-pilot
+      - name: Validate self-hosted configuration
+        run: >-
+          docker run --rm
+          -v "$GITHUB_WORKSPACE:/config:ro"
+          ghcr.io/renovatebot/renovate:44.200.0
+          renovate-config-validator --strict /config/renovate-pilot.cjs
+      - name: Run Renovate without writing to GitHub
+        uses: renovatebot/github-action@2804199d260ad00c1fae0e9e842888369391c776 # v46.3.10
+        with:
+          configurationFile: renovate-pilot.cjs
+          renovate-version: 44.200.0
+          token: ${{ secrets.GITHUB_TOKEN }}
+          additional-env-list: |
+            LOG_FILE
+            LOG_FILE_LEVEL
+            LOG_FILE_FORMAT
+        env:
+          LOG_LEVEL: info
+          LOG_FILE: /tmp/renovate-pilot/renovate.jsonl
+          LOG_FILE_LEVEL: debug
+          LOG_FILE_FORMAT: json
+      - name: Save diagnostic log
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: renovate-pilot-${{ github.run_id }}-${{ github.run_attempt }}
+          path: /tmp/renovate-pilot/renovate.jsonl
+          if-no-files-found: warn
+          retention-days: 7
