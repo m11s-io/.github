@@ -3,12 +3,12 @@
   "extends": [
     "config:best-practices"
   ],
-  "minimumReleaseAge": "7 days",
+  "minimumReleaseAge": "14 days",
   "minimumReleaseAgeBehaviour": "timestamp-required",
   "internalChecksFilter": "strict",
   "vulnerabilityAlerts": {
     "enabled": true,
-    "minimumReleaseAge": "0 days",
+    "minimumReleaseAge": "14 days",
     "prCreation": "immediate",
     "dependencyDashboardApproval": false,
     "automerge": true,
@@ -16,18 +16,5 @@
     "platformAutomerge": false,
     "rebaseWhen": "behind-base-branch",
     "ignoreTests": false
-  },
-  "packageRules": [
-    {
-      "description": "Our maintained Docker images have already passed the upstream cooldown and CI",
-      "matchDatasources": [
-        "docker"
-      ],
-      "matchPackageNames": [
-        "/^m11s\\//",
-        "/^docker\\.io\\/m11s\\//"
-      ],
-      "minimumReleaseAge": "0 days"
-    }
-  ]
+  }
 }
