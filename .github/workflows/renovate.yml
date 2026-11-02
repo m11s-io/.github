@@ -12,8 +12,6 @@ on:
         type: boolean
         default: false
     secrets:
-      RENOVATE_APP_ID:
-        required: true
       RENOVATE_APP_PRIVATE_KEY:
         required: true
 
@@ -51,7 +49,7 @@ jobs:
         id: app
         uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
         with:
-          app-id: ${{ secrets.RENOVATE_APP_ID }}
+          client-id: Iv23liIjuRn3Blcl6ZV0 # m11s-renovate; public identifier
           private-key: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
           repositories: ${{ github.event.repository.name }}
