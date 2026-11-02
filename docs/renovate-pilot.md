@@ -35,3 +35,17 @@ to disable the cutoff silently.
 Success means that configuration validation passes, repository extraction and
 lookups run, and diagnostic logs are available without any target-repository
 mutation. Review artifact-generation errors separately before live rollout.
+
+## First run: November 2, 2026
+
+[Run 41415574056](https://github.com/m11s-io/.github/actions/runs/41415574056)
+passed configuration validation, scanned 44 files and 255 dependencies, completed
+lookups, and uploaded 1,150 diagnostic records. Logged write operations were
+marked `DRY-RUN`.
+
+Two uv artifact updates failed because the target's current `main` pins
+`huggingface-hub==2.3.0`, which is newer than the cutoff. This confirms that uv
+received the central cutoff. The compliant pin and regenerated locks are in
+[docker-images PR #146](https://github.com/m11s-io/docker-images/pull/146).
+The successful workflow status does not imply that every artifact update
+succeeded; inspect the diagnostic log when assessing readiness.
