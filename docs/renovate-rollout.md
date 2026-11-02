@@ -55,6 +55,11 @@ No app code, web server, OAuth callback, or webhook endpoint is needed.
    Grant both secrets to the same selected repositories. Do not paste the PEM
    into chat or commit it. The existing infrastructure App's provider cannot
    create these organization secrets; an organization owner must do this setup.
+6. For OpenTofu deployment of `.github/workflows/renovate.yml`, give the existing
+   `m11s-tofu` infrastructure App **Workflows: read and write** and approve the
+   installation permission update. Its current Contents permission alone is
+   insufficient to provision workflow files. This does not make it the Renovate
+   runtime identity; runtime tokens still come from the dedicated App.
 
 Reference: <https://docs.renovatebot.com/modules/platform/github/#running-as-a-github-app>.
 
