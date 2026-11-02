@@ -8,7 +8,7 @@
   "internalChecksFilter": "strict",
   "vulnerabilityAlerts": {
     "enabled": true,
-    "minimumReleaseAge": "14 days",
+    "minimumReleaseAge": "0 days",
     "prCreation": "immediate",
     "dependencyDashboardApproval": false,
     "automerge": true,
