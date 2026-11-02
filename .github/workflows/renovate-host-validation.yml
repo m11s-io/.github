@@ -3,6 +3,7 @@ name: Validate Renovate host
 on:
   pull_request:
     paths:
+      - renovate-config.json
       - renovate-host.cjs
       - .github/workflows/renovate.yml
       - .github/workflows/renovate-host-validation.yml
@@ -32,4 +33,4 @@ jobs:
           -e M11S_RENOVATE_MODE -e M11S_RENOVATE_REPOSITORY -e M11S_RENOVATE_DRY_RUN
           -v "$GITHUB_WORKSPACE:/config:ro"
           ghcr.io/renovatebot/renovate:44.200.0
-          renovate-config-validator --strict /config/renovate-host.cjs
+          renovate-config-validator --strict /config/renovate-host.cjs /config/renovate-config.json
