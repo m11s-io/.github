@@ -1,109 +1,63 @@
-# Self-hosted Renovate rollout
+# Renovate operations
 
-## Structure
+Renovate runs in GitHub Actions using the organization-owned `m11s-renovate`
+App. Mend's hosted App has been uninstalled. The private `demo-repository` is
+excluded; the rollout covers the 24 public repositories managed by `infra/github`.
 
-`renovate-config.json` holds shared dependency policy. `renovate-host.cjs` holds
-self-hosted execution settings. `.github/workflows/renovate.yml` is a reusable
-workflow. `infra/github/renovate.tf` deploys a small caller to each of its 25
-repositories on that repository's actual default branch. Logs and artifacts stay
-in each calling repository, including the private repository.
+## Files
 
-Each caller mints a short-lived token restricted to its own repository. It runs
-security and routine scans sequentially, on separate branch prefixes. Both are
-full dry runs until the repository is explicitly enabled for live execution.
+- `renovate-config.json`: shared dependency policy inherited by repositories.
+- `renovate-host.cjs`: deployment settings for routine and security runs.
+- `.github/workflows/renovate.yml`: shared reusable workflow.
+- `.github/workflows/renovate-managed.yml` in each repository: small caller pinned
+  to an immutable shared revision. Managed by `infra/github/renovate.tf`.
+- `scripts/check-renovate-host.cjs` and the validation workflow: checks for mode
+  separation, explicit dry-run settings, and valid configuration.
 
-- Routine: shared 14-day policy; `UV_EXCLUDE_NEWER=14 days` for package managers.
-- Security: Renovate's `security:only-security-updates` preset;
-  `UV_EXCLUDE_NEWER=false`; immediate vulnerability PRs, auto-merge only after
-  checks pass; no lock-file-maintenance updates.
+Each caller issues a short-lived App token restricted to its own repository.
+Logs and seven-day diagnostic artifacts remain in that repository.
 
-The security run force-disables normal dependencies so repository opt-in rules
-cannot re-enable them; Renovate appends vulnerability-alert force-enable rules
-afterward. The audit found one such ordinary opt-in in helm-charts. Check the
-resolved security run for non-security update proposals before live cutover.
-Do not treat a passing configuration validator as proof of end-to-end behavior.
+## Policy
 
-## One-time GitHub App setup
+Routine updates wait 14 days. The routine bot sets `UV_EXCLUDE_NEWER=14 days`
+centrally; Python projects do not need to repeat that setting.
 
-No app code, web server, OAuth callback, or webhook endpoint is needed.
+The security run uses Renovate's security-only preset and a forced disable rule
+for normal dependencies. Detected vulnerability fixes override it, bypass the uv
+cutoff (`UV_EXCLUDE_NEWER=false`), and may auto-merge after checks pass. This
+requires GitHub Dependency Graph and Dependabot alerts to detect vulnerabilities.
+It is not a general malware scanner or a Docker vulnerability scanner.
 
-1. Open <https://github.com/organizations/m11s-io/settings/apps/new>.
-2. Name the App `m11s-renovate` (choose another available name if needed).
-   Homepage: <https://github.com/m11s-io/.github>. Disable webhooks and leave
-   user authorization callbacks unused. Make the App private to this organization.
-3. Set repository permissions:
+Separate branch prefixes prevent the two runs from touching each other's PRs.
+Routine updates retain each repository's merge policy. Application CI and branch
+protection remain in effect; artifact failures must be resolved before merging
+an affected update.
 
-   | Permission | Access |
-   | --- | --- |
-   | Administration | Read |
-   | Checks | Read and write |
-   | Commit statuses | Read and write |
-   | Contents | Read and write |
-   | Dependabot alerts | Read |
-   | Issues | Read and write |
-   | Pull requests | Read and write |
-   | Workflows | Read and write |
-   | Metadata | Read (automatic) |
+## Configuration and credentials
 
-   Set organization **Members** permission to **Read**. Merge queues permission
-   is needed only if a target repository uses a merge queue.
-4. Install the App on the repositories in
-   `infra/github/files/renovate-repositories.json`, or use the
-   `renovate_installation_repositories` OpenTofu output. Keep Mend installed for now.
-5. Set organization Actions variable `RENOVATE_CLIENT_ID` to the public App
-   client ID (`Iv23liIjuRn3Blcl6ZV0`). Generate an App private key and store the PEM
-   contents as organization Actions secret `RENOVATE_APP_PRIVATE_KEY`.
-   Grant the variable and secret to the selected repositories. Do not paste the PEM
-   into chat or commit it. The existing infrastructure App's provider cannot
-   create these organization secrets; an organization owner must do this setup.
-6. For OpenTofu deployment of `.github/workflows/renovate.yml`, give the existing
-   `m11s-tofu` infrastructure App **Workflows: read and write** and approve the
-   installation permission update. Its current Contents permission alone is
-   insufficient to provision workflow files. This does not make it the Renovate
-   runtime identity; runtime tokens still come from the dedicated App.
+Organization Actions **variable**: `RENOVATE_CLIENT_ID`.
+Organization Actions **secret**: `RENOVATE_APP_PRIVATE_KEY`.
+Both need access to the calling repositories. The App must be installed there
+with the permissions documented by
+[Renovate](https://docs.renovatebot.com/modules/platform/github/#running-as-a-github-app).
+No webhook server or App implementation is needed.
 
-Reference: <https://docs.renovatebot.com/modules/platform/github/#running-as-a-github-app>.
+The separate infrastructure identity uses variable `TOFU_CLIENT_ID` and secret
+`TOFU_APP_PRIVATE_KEY`. OpenTofu's numeric `github_app_id` provider variable is
+separate and remains required. Never put private keys in Actions Variables.
 
-## Deployment and verification
+## Run and maintain
 
-1. Merge the reviewed shared workflow and record its full commit SHA.
-2. Set `renovate_workflow_ref` to that SHA and
-   `renovate_deploy_workflows=true` in the infrastructure configuration.
-   Leave `renovate_live_repositories=[]`.
-3. Review an OpenTofu plan limited to the new workflow resources. The working
-   infrastructure checkout contains unrelated ongoing changes; do not apply a
-   broad plan just to deploy Renovate. Existing workflow paths must be imported
-   before management; `overwrite_on_create=false` prevents silent replacement.
-   Protected default branches may require deployment via reviewed PRs instead of
-   direct provider commits. Do not weaken branch protections.
-4. Manually dispatch **Renovate** in each repository. Verify token creation,
-   repository access, both configuration validations, lookup/artifact results,
-   and log upload. Check that the security pass proposes only security fixes.
-   A fresh security fix must resolve with the uv cutoff disabled and normal CI
-   must pass before live security auto-merge is considered verified.
-5. For uv projects, remove project-level `exclude-newer` only as part of their
-   tested cutover. uv records resolver options in its locks, so regenerate/check
-   locks and adjust lock-consistency checks as needed. Confirm ordinary CI and
-   security PR CI do not independently impose the routine cutoff.
-6. Once verified, disable Mend's access for the repository and add its name to
-   `renovate_live_repositories`. Apply only the reviewed caller change. The next
-   manual live dispatch or hourly schedule runs the replacement.
+Live-enabled callers run hourly. Use **Actions → Renovate → Run workflow** for
+an immediate run; manual dispatch defaults to dry run. Clear that checkbox only
+when live writes are wanted. To pause schedules, restore the caller's live flag
+to false. Do not reinstall Mend alongside an active writer.
 
-For organization-wide Mend removal, first check for installed repositories
-outside this infrastructure inventory. Do not interrupt repositories outside the
-migration scope. After all scoped repositories are healthy, uninstall the old
-**Renovate** App at organization Settings → GitHub Apps → Renovate → Configure.
-If other repositories still need it, retain a selected-repository installation
-for those repositories instead.
+When updating the shared runner, validate both modes, review the commit, and
+update caller pins through the infrastructure configuration. Existing callers
+are adopted with its conditional import block; do not overwrite protected
+branches to bypass review.
 
-Do not delete old Mend PRs or branches blindly. Close superseded bot-authored PRs
-only after the replacement has successfully proposed the corresponding updates.
-New prefixes keep the two writers isolated during dry runs and validation.
-
-## Rollback
-
-Remove a repository from `renovate_live_repositories` to stop scheduled writes;
-manual dispatch defaults to dry run. Re-enable Mend only after self-hosted writes
-have stopped. App-token revocation runs automatically at the end of each job.
-The old pilot remains a read-only diagnostic workflow until it is deliberately
-retired.
+Some forks inherit release branches that do not exist locally, and some projects
+have pre-existing dependency/build failures. Inspect the diagnostic artifact;
+a successful Actions status does not guarantee every package update succeeded.
