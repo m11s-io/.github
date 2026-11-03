@@ -2,18 +2,13 @@ name: Validate Renovate host
 
 on:
   pull_request:
-    paths:
-      - renovate-config.json
-      - renovate-host.cjs
-      - .github/workflows/renovate.yml
-      - .github/workflows/renovate-host-validation.yml
-      - scripts/check-renovate-host.cjs
 
 permissions:
   contents: read
 
 jobs:
   validate:
+    name: validate (${{ matrix.mode }})
     runs-on: ubuntu-26.04
     strategy:
       matrix:
@@ -34,3 +29,18 @@ jobs:
           -v "$GITHUB_WORKSPACE:/config:ro"
           ghcr.io/renovatebot/renovate:44.200.0@sha256:8639eca545119147ce9114c22315129dd52794b3ea8a6767f8b0bd22606545c4
           renovate-config-validator --strict /config/renovate-host.cjs /config/renovate-config.json
+      - name: Check effective automerge gates with Renovate helpers
+        run: >-
+          docker run --rm
+          -v "$GITHUB_WORKSPACE:/config:ro"
+          ghcr.io/renovatebot/renovate:44.200.0@sha256:8639eca545119147ce9114c22315129dd52794b3ea8a6767f8b0bd22606545c4
+          node /config/scripts/check-renovate-effective.mjs
+
+  actionlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Lint repository workflows
+        run: go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.12 -ignore 'label "ubuntu-26.04" is unknown'

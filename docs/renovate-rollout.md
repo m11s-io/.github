@@ -25,15 +25,32 @@ Routine updates wait 14 days. The routine bot sets `UV_EXCLUDE_NEWER=14 days`
 centrally; Python projects do not need to repeat that setting.
 
 The security run uses Renovate's security-only preset and a forced disable rule
-for normal dependencies. Detected vulnerability fixes override it, bypass the uv
-cutoff (`UV_EXCLUDE_NEWER=false`), and may auto-merge after checks pass. This
-requires GitHub Dependency Graph and Dependabot alerts to detect vulnerabilities.
-It is not a general malware scanner or a Docker vulnerability scanner.
+for normal dependencies. Detected vulnerability fixes bypass the uv cutoff
+(`UV_EXCLUDE_NEWER=false`). Only patch and minor updates may auto-merge, after
+the repository's required checks pass; major updates stay manual. This requires
+GitHub Dependency Graph and Dependabot alerts to detect vulnerabilities. It is
+not a general malware scanner or a Docker vulnerability scanner.
 
 Separate branch prefixes prevent the two runs from touching each other's PRs.
-Routine updates retain each repository's merge policy. Application CI and branch
-protection remain in effect; artifact failures must be resolved before merging
-an affected update.
+Automerge is limited to docker-images, helm-charts, redis-http-proxy,
+terraform-provider-fider, wordninja-go, terraform-provider-huggingface,
+terraform-provider-qbittorrent, symspell-go, jina-proxy, t9s, and
+domain-connect-terraform-agent. Each has explicit required application checks
+in the infrastructure policy. Other repositories still receive dependency PRs
+but cannot auto-merge. Chart release bumps, ComfyUI ROCm updates, and package
+rules with explicit `automerge: false` remain manual.
+
+Roll out in this order: merge CI changes and wait for successful application
+checks, apply the required branch protections, then merge the shared Renovate
+automerge configuration. This avoids enabling auto-merge before its gate exists.
+Required checks are `droast`, `image-checks`, `runtime-contracts`, and `renovate`
+for docker-images; `lint-test` and `generate-schema` for helm-charts; `test` for
+redis-http-proxy, wordninja-go, symspell-go, and domain-connect-terraform-agent;
+`build` for terraform-provider-fider; `unit`, `acceptance (terraform)`, and
+`acceptance (tofu)` for each enrolled Terraform provider; `test-and-publish` for
+jina-proxy; and `verify` for t9s. The t9s Docs `validate` job only runs for
+documentation paths, so it is not required for dependency PRs. Deploy jobs and
+OSV full-scan results are not required CI contexts.
 
 ## Configuration and credentials
 
