@@ -16,7 +16,14 @@ coverage of Helm chart dependencies, Terraform providers, or container images.
 ## Organization rollout
 
 1. Merge shared workflow changes to `main` before enabling callers.
-2. Deploy the caller to every active organization repository, including forks.
+2. Deploy callers to repositories with `osv = true` in
+   `infra/github/repository-policies.tf`. Contribution-only forks (`frr-k8s`,
+   `longhorn`, and `longhorn-manager`) are excluded; deployment forks remain
+   enrolled. Removing an org-managed caller from a contribution fork does not
+   alter workflows inherited from its upstream repository. Before retirement,
+   inspect caller provenance in each fork; remove only the org-added
+   `.github/workflows/osv-scanner.yml` file, using a reviewed change when it is
+   not tracked by OpenTofu.
 3. Use each repository's actual default branch and stagger weekly scans.
 4. Verify PR comparison, a default-branch full scan, and SARIF upload in Actions.
 5. Triage existing findings before making the PR check required in branch rules.

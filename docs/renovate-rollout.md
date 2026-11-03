@@ -1,8 +1,10 @@
 # Renovate operations
 
 Renovate runs in GitHub Actions using the organization-owned `m11s-renovate`
-App. Mend's hosted App has been uninstalled. The private `demo-repository` is
-excluded; the rollout covers the 24 public repositories managed by `infra/github`.
+App. Mend's hosted App has been uninstalled. The private `demo-repository` and
+the contribution-only forks `frr-k8s`, `longhorn`, and `longhorn-manager` are
+excluded. The active rollout covers 21 public repositories selected by the
+explicit policies in `infra/github`.
 
 ## Files
 
