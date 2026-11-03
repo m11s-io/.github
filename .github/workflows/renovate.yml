@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       host-ref:
-        description: Immutable revision of the shared host configuration
+        description: Shared host configuration revision (main or a full commit SHA)
         type: string
         required: true
       live:
