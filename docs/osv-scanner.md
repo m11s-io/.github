@@ -1,9 +1,11 @@
 # Dependency vulnerability scanning
 
-The shared `.github/workflows/osv-scanner.yml` delegates scanning and SARIF
-reporting to Google's OSV-Scanner workflows, pinned to a release commit.
-It scans source manifests and lockfiles recursively, with OSV's default call
-analysis. It does not build or scan published container images.
+The shared `.github/workflows/osv-scanner.yml` calls the shared PR and full-scan
+workflows. They retain Google's OSV-Scanner v2.7.0 behavior, while the scanner
+and reporter image is pinned by SHA-256 digest and third-party GitHub Actions
+are pinned to commit SHAs. It scans source manifests and lockfiles recursively,
+with OSV's default call analysis. It does not build or scan published container
+images.
 
 Pull requests compare the proposed code with the target branch and fail on newly
 introduced vulnerabilities. Pushes, scheduled runs, and manual runs scan the full
@@ -17,7 +19,8 @@ coverage of Helm chart dependencies, Terraform providers, or container images.
 
 1. Merge shared workflow changes to `main` before enabling callers.
 2. Deploy the caller to every active organization repository, including forks.
-3. Use each repository's actual default branch and stagger weekly scans.
+3. Use each repository's actual default branch and stagger daily scans. The
+   `infra/github` configuration spreads managed runs across 6:00–6:48 UTC.
 4. Verify PR comparison, a default-branch full scan, and SARIF upload in Actions.
 5. Triage existing findings before making the PR check required in branch rules.
 
@@ -43,7 +46,7 @@ on:
   push:
     branches: [main]
   schedule:
-    - cron: '43 6 * * 2'
+    - cron: '43 6 * * *'
   workflow_dispatch:
 
 permissions:
@@ -60,12 +63,13 @@ jobs:
     uses: m11s-io/.github/.github/workflows/osv-scanner.yml@main
 ```
 
-Use the repository's actual default branch and a staggered weekly schedule.
-Callers follow the shared workflow on `main`, so a shared-workflow merge takes
-effect across all repositories immediately. Google upstream workflows remain
-pinned to a release commit. The optional
-`scan-args` string accepts one argument per line; do not override OSV's output
-format or output path, which the upstream workflows manage.
+Use the repository's actual default branch and a staggered daily schedule.
+Callers follow the first-party shared workflow on `main`, so a shared-workflow
+merge takes effect across repositories immediately. Third-party GitHub Actions
+in the shared implementation are pinned to commit SHAs, and container images
+are pinned to SHA-256 digests. The optional `scan-args` string accepts one
+argument per line; do not override OSV's output format or output path, which the
+shared workflows manage.
 
 Merge queues are outside this rollout; validate comparison behavior before adding
 a `merge_group` trigger. Keep Renovate for dependency update PRs and retain

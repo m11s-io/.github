@@ -24,7 +24,7 @@ jobs:
   scan-pr:
     name: New dependency vulnerabilities
     if: github.event_name == 'pull_request'
-    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable-pr.yml@b1d267aea5211fa648d9d442fa64b90dbdcbdd36 # v2.7.0
+    uses: ./.github/workflows/osv-scanner-reusable-pr.yml
     with:
       scan-args: ${{ inputs.scan-args }}
       fail-on-vuln: true
@@ -33,7 +33,7 @@ jobs:
   scan-full:
     name: All dependency vulnerabilities
     if: github.event_name != 'pull_request'
-    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@b1d267aea5211fa648d9d442fa64b90dbdcbdd36 # v2.7.0
+    uses: ./.github/workflows/osv-scanner-reusable.yml
     with:
       scan-args: ${{ inputs.scan-args }}
       fail-on-vuln: true
