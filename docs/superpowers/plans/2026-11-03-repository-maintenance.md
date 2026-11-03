@@ -103,3 +103,9 @@ Controller keeps worktrees, reports, ledger and diff packages in /private/tmp/m1
 - [ ] Update caller template, shared workflow interface, shared own caller, examples and operations docs consistently. Avoid coupling weekly behavior to mutable dispatch timestamps; derive scheduled mode from explicit schedule identity.
 - [ ] Test both scheduled modes, manual dry runs, old caller compatibility, invalid selections, stable schedule derivation and contribution exclusion. Use existing host tests plus narrow new tests for behavior, actionlint, tofu format/validation.
 - [ ] Commit per repo; document shared workflow merge before callers and infrastructure apply prerequisites. Do not apply or push.
+
+## Preflight review clarifications
+
+- Point 3: Activation order is mandatory: merge/run meaningful PR checks, apply corresponding required branch protection, then merge/enable shared automerge configuration. Changes may not enable new unprotected repositories during intermediate rollout. Inspect live-protection.json as evidence, and active rulesets where needed.
+- Point 5: Audit workflow permission dependencies in contribution-only forks too, because the organization default affects them. Avoid restructuring upstream CI; record necessary minimal permission fixes or deployment limitations rather than assuming no effect.
+- Point 6: Task 6 must extend/replace the Task 1 policy map into one authoritative catalog and derive policy views from it. Do not maintain two independent full 25-repo inventories.
