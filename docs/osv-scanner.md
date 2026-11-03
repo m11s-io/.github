@@ -39,7 +39,7 @@ on:
   push:
     branches: [main]
   schedule:
-    - cron: '43 6 * * 2'
+    - cron: '43 6 * * *'
   workflow_dispatch:
 
 permissions:
@@ -56,7 +56,7 @@ jobs:
     uses: m11s-io/.github/.github/workflows/osv-scanner.yml@main
 ```
 
-Use the repository's actual default branch and a staggered weekly schedule.
+Use the repository's actual default branch and a staggered daily schedule.
 Callers follow the shared workflow on `main`, so a shared-workflow merge takes
 effect across all repositories immediately. Google upstream workflows remain
 pinned to a release commit. The optional
