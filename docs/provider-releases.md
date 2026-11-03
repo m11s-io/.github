@@ -31,3 +31,11 @@ choices through the narrow `runs_on`, `timeout_minutes`, and
 `goreleaser_version` inputs. An empty GoReleaser version retains the action's
 existing default. Keep provider-specific GoReleaser configuration, metadata,
 signing behavior, and acceptance tests in each provider repository.
+
+The shared workflow standardizes the action pins on checkout v7.0.1,
+setup-go v7.0.0, and GoReleaser action v7.3.0, the newer verified versions
+already used by the qBittorrent release workflow. This updates the older
+Fider/Hugging Face callers to the same centralized action versions while
+retaining their runner and GoReleaser CLI version settings. Their existing
+checkout, setup-go, and GoReleaser inputs remain supported by these action
+versions.
