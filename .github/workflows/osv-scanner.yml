@@ -8,7 +8,12 @@ on:
         type: string
         default: |-
           --recursive
+          --allow-no-lockfiles
           ./
+      upload-sarif:
+        description: Upload results to GitHub code scanning when available
+        type: boolean
+        default: true
 
 permissions:
   actions: read
@@ -23,7 +28,7 @@ jobs:
     with:
       scan-args: ${{ inputs.scan-args }}
       fail-on-vuln: true
-      upload-sarif: true
+      upload-sarif: ${{ inputs.upload-sarif }}
 
   scan-full:
     name: All dependency vulnerabilities
@@ -32,4 +37,4 @@ jobs:
     with:
       scan-args: ${{ inputs.scan-args }}
       fail-on-vuln: true
-      upload-sarif: true
+      upload-sarif: ${{ inputs.upload-sarif }}

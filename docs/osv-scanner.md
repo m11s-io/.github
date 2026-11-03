@@ -9,20 +9,29 @@ Pull requests compare the proposed code with the target branch and fail on newly
 introduced vulnerabilities. Pushes, scheduled runs, and manual runs scan the full
 dependency tree and fail on any reported vulnerability. Scanner errors also fail
 the job. Results appear in Security > Code scanning and workflow artifacts.
+Repositories with no supported dependency files allow an empty scan, so the
+workflow is ready when dependencies are added. An empty scan does not establish
+coverage of Helm chart dependencies, Terraform providers, or container images.
 
-## Pilot and rollout
+## Organization rollout
 
 1. Publish the shared workflow commit before enabling callers.
-2. Pilot on `terraform-provider-fider` and `redis-http-proxy`.
-3. Verify PR comparison, a default-branch full scan, and SARIF upload in Actions.
-4. Triage existing findings before making the PR check required in branch rules.
-5. Expand to maintained application/library repos. Assess upstream forks and
-   container/chart repositories separately.
+2. Deploy the caller to every active organization repository, including forks.
+3. Use each repository's actual default branch and stagger weekly scans.
+4. Verify PR comparison, a default-branch full scan, and SARIF upload in Actions.
+5. Triage existing findings before making the PR check required in branch rules.
+
+The pilot PR scans passed in `terraform-provider-fider` and `redis-http-proxy`,
+including SARIF upload. The broader rollout includes repos without supported
+manifests so future dependencies receive the same checks automatically.
 
 Each caller must explicitly grant `actions: read`, `contents: read`, and
 `security-events: write`. No secrets are passed. Use `pull_request`, not
 `pull_request_target`, for scanning contributions. Public repositories support
 SARIF code scanning; private repositories need the corresponding GitHub entitlement.
+Set `with: {upload-sarif: false}` on the caller job where code scanning is
+unavailable (currently `demo-repository`). Scanning still fails on vulnerabilities
+and retains SARIF as an Actions artifact.
 
 Create `.github/workflows/osv-scanner.yml` in each repository:
 
@@ -56,13 +65,13 @@ Always pin the shared workflow to a published commit SHA. The optional
 `scan-args` string accepts one argument per line; do not override OSV's output
 format or output path, which the upstream workflows manage.
 
-Merge queues are outside this pilot; validate comparison behavior before adding
+Merge queues are outside this rollout; validate comparison behavior before adding
 a `merge_group` trigger. Keep Renovate for dependency update PRs and retain
 existing CodeQL or language-specific checks where they provide useful coverage.
 
 ## Validation
 
-Run `actionlint` against the shared workflow and both caller files before rollout.
+Run `actionlint` against the shared workflow and every caller file before rollout.
 GitHub execution is required to verify cross-repository workflow resolution,
 fork PR permissions, scanner runtime, and SARIF ingestion. Local linting cannot
 establish that the repositories have no vulnerable dependencies.
