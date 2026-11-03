@@ -15,7 +15,7 @@ coverage of Helm chart dependencies, Terraform providers, or container images.
 
 ## Organization rollout
 
-1. Publish the shared workflow commit before enabling callers.
+1. Merge shared workflow changes to `main` before enabling callers.
 2. Deploy the caller to every active organization repository, including forks.
 3. Use each repository's actual default branch and stagger weekly scans.
 4. Verify PR comparison, a default-branch full scan, and SARIF upload in Actions.
@@ -57,11 +57,13 @@ concurrency:
 
 jobs:
   scan:
-    uses: m11s-io/.github/.github/workflows/osv-scanner.yml@<published-commit-sha>
+    uses: m11s-io/.github/.github/workflows/osv-scanner.yml@main
 ```
 
 Use the repository's actual default branch and a staggered weekly schedule.
-Always pin the shared workflow to a published commit SHA. The optional
+Callers follow the shared workflow on `main`, so a shared-workflow merge takes
+effect across all repositories immediately. Google upstream workflows remain
+pinned to a release commit. The optional
 `scan-args` string accepts one argument per line; do not override OSV's output
 format or output path, which the upstream workflows manage.
 
@@ -75,3 +77,33 @@ Run `actionlint` against the shared workflow and every caller file before rollou
 GitHub execution is required to verify cross-repository workflow resolution,
 fork PR permissions, scanner runtime, and SARIF ingestion. Local linting cannot
 establish that the repositories have no vulnerable dependencies.
+
+## Rollout pull requests
+
+| Repository | Pull request |
+| --- | --- |
+| .github | [#18](https://github.com/m11s-io/.github/pull/18) |
+| demo-repository | [#2](https://github.com/m11s-io/demo-repository/pull/2) |
+| docker-images | [#174](https://github.com/m11s-io/docker-images/pull/174) |
+| domain-connect-terraform-agent | [#12](https://github.com/m11s-io/domain-connect-terraform-agent/pull/12) |
+| dub | [#18](https://github.com/m11s-io/dub/pull/18) |
+| fider | [#17](https://github.com/m11s-io/fider/pull/17) |
+| frr-k8s | [#3](https://github.com/m11s-io/frr-k8s/pull/3) |
+| gatus | [#18](https://github.com/m11s-io/gatus/pull/18) |
+| helm-charts | [#79](https://github.com/m11s-io/helm-charts/pull/79) |
+| homebrew-tap | [#3](https://github.com/m11s-io/homebrew-tap/pull/3) |
+| jina-proxy | [#11](https://github.com/m11s-io/jina-proxy/pull/11) |
+| js | [#11](https://github.com/m11s-io/js/pull/11) |
+| longhorn | [#4](https://github.com/m11s-io/longhorn/pull/4) |
+| longhorn-manager | [#7](https://github.com/m11s-io/longhorn-manager/pull/7) |
+| redis-http-proxy | [#16](https://github.com/m11s-io/redis-http-proxy/pull/16) |
+| symspell-go | [#9](https://github.com/m11s-io/symspell-go/pull/9) |
+| t9s | [#42](https://github.com/m11s-io/t9s/pull/42) |
+| terraform-cloudflare-modules | [#4](https://github.com/m11s-io/terraform-cloudflare-modules/pull/4) |
+| terraform-provider-fider | [#15](https://github.com/m11s-io/terraform-provider-fider/pull/15) |
+| terraform-provider-ghost | [#15](https://github.com/m11s-io/terraform-provider-ghost/pull/15) |
+| terraform-provider-huggingface | [#20](https://github.com/m11s-io/terraform-provider-huggingface/pull/20) |
+| terraform-provider-nexus | [#17](https://github.com/m11s-io/terraform-provider-nexus/pull/17) |
+| terraform-provider-qbittorrent | [#17](https://github.com/m11s-io/terraform-provider-qbittorrent/pull/17) |
+| wordninja-go | [#3](https://github.com/m11s-io/wordninja-go/pull/3) |
+| zick | [#16](https://github.com/m11s-io/zick/pull/16) |
