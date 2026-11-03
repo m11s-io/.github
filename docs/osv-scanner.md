@@ -17,7 +17,7 @@ coverage of Helm chart dependencies, Terraform providers, or container images.
 
 1. Merge shared workflow changes to `main` before enabling callers.
 2. Add the caller to repositories that need dependency scanning.
-3. Use each repository's actual default branch and stagger daily scans.
+3. Use each repository's actual default branch and stagger weekly scans.
 4. Verify PR comparison, a default-branch full scan, and SARIF upload in Actions.
 5. Triage existing findings before making the PR check required in branch rules.
 
