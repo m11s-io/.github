@@ -9,8 +9,8 @@ excluded; the rollout covers the 24 public repositories managed by `infra/github
 - `renovate-config.json`: shared dependency policy inherited by repositories.
 - `renovate-host.cjs`: deployment settings for routine and security runs.
 - `.github/workflows/renovate.yml`: shared reusable workflow.
-- `.github/workflows/renovate-managed.yml` in each repository: small caller pinned
-  to an immutable shared revision. Managed by `infra/github/renovate.tf`.
+- `.github/workflows/renovate-managed.yml` in each repository: small caller following
+  the shared workflow on `main`. Managed by `infra/github/renovate.tf`.
 - `scripts/check-renovate-host.cjs` and the validation workflow: checks for mode
   separation, explicit dry-run settings, and valid configuration.
 
@@ -53,10 +53,16 @@ an immediate run; manual dispatch defaults to dry run. Clear that checkbox only
 when live writes are wanted. To pause schedules, restore the caller's live flag
 to false. Do not reinstall Mend alongside an active writer.
 
-When updating the shared runner, validate both modes, review the commit, and
-update caller pins through the infrastructure configuration. Existing callers
-are adopted with its conditional import block; do not overwrite protected
-branches to bypass review.
+Both the reusable workflow reference and its `host-ref` checkout follow `main`
+in `m11s-io/.github`. When updating the shared runner or host configuration,
+validate both modes and review the PR before merging: the next run in every
+calling repository uses the updated shared code. Third-party actions and the
+Renovate runtime remain versioned independently.
+
+For an intentional rollback or fixed revision, set `renovate_workflow_ref` to a
+full commit SHA through the infrastructure configuration; it supplies both
+references. Existing callers are adopted with the conditional import block;
+do not overwrite protected branches to bypass review.
 
 Some forks inherit release branches that do not exist locally, and some projects
 have pre-existing dependency/build failures. Inspect the diagnostic artifact;
