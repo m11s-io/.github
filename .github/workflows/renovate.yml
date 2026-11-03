@@ -1,92 +1,29 @@
-name: Self-hosted Renovate
+# Managed by infra/github; edit the shared workflow or its OpenTofu settings.
+name: Renovate
 
 on:
-  workflow_call:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
     inputs:
-      host-ref:
-        description: Shared host configuration revision (main or a full commit SHA)
-        type: string
-        required: true
-      live:
-        description: Allow writes after the replacement has been verified
+      dry-run:
+        description: Inspect updates without writing to GitHub
         type: boolean
-        default: false
-    secrets:
-      RENOVATE_APP_PRIVATE_KEY:
-        required: true
+        default: true
 
 permissions:
   contents: read
 
+concurrency:
+  group: renovate
+  cancel-in-progress: false
+
 jobs:
   renovate:
-    runs-on: ubuntu-26.04
-    timeout-minutes: 50
-    strategy:
-      fail-fast: false
-      max-parallel: 1
-      matrix:
-        mode: [security, routine]
-    env:
-      M11S_RENOVATE_MODE: ${{ matrix.mode }}
-      M11S_RENOVATE_REPOSITORY: ${{ github.repository }}
-      M11S_RENOVATE_DRY_RUN: ${{ inputs.live && 'false' || 'true' }}
-    steps:
-      - name: Checkout shared host configuration
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          repository: m11s-io/.github
-          ref: ${{ inputs.host-ref }}
-          persist-credentials: false
-      - name: Validate self-hosted configuration
-        run: >-
-          docker run --rm
-          -e M11S_RENOVATE_MODE -e M11S_RENOVATE_REPOSITORY -e M11S_RENOVATE_DRY_RUN
-          -v "$GITHUB_WORKSPACE:/config:ro"
-          ghcr.io/renovatebot/renovate:44.200.0@sha256:8639eca545119147ce9114c22315129dd52794b3ea8a6767f8b0bd22606545c4
-          renovate-config-validator --strict /config/renovate-host.cjs
-      - name: Create repository-scoped token
-        id: app
-        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
-        with:
-          client-id: ${{ vars.RENOVATE_CLIENT_ID }}
-          private-key: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
-          owner: ${{ github.repository_owner }}
-          repositories: ${{ github.event.repository.name }}
-      - name: Set bot identity
-        env:
-          GH_TOKEN: ${{ steps.app.outputs.token }}
-          APP_SLUG: ${{ steps.app.outputs.app-slug }}
-        run: |
-          bot="${APP_SLUG}[bot]"
-          bot_id="$(gh api "/users/$bot" --jq .id)"
-          echo "RENOVATE_USERNAME=$bot" >> "$GITHUB_ENV"
-          echo "RENOVATE_GIT_AUTHOR=$bot <$bot_id+$bot@users.noreply.github.com>" >> "$GITHUB_ENV"
-      - name: Prepare logs
-        run: mkdir -p /tmp/renovate-run && chmod 0777 /tmp/renovate-run
-      - name: Run Renovate
-        uses: renovatebot/github-action@2804199d260ad00c1fae0e9e842888369391c776 # v46.3.10
-        with:
-          configurationFile: renovate-host.cjs
-          renovate-version: 44.200.0
-          token: ${{ steps.app.outputs.token }}
-          additional-env-list: |
-            M11S_RENOVATE_MODE
-            M11S_RENOVATE_REPOSITORY
-            M11S_RENOVATE_DRY_RUN
-            LOG_FILE
-            LOG_FILE_LEVEL
-            LOG_FILE_FORMAT
-        env:
-          LOG_LEVEL: info
-          LOG_FILE: /tmp/renovate-run/renovate.jsonl
-          LOG_FILE_LEVEL: debug
-          LOG_FILE_FORMAT: json
-      - name: Save diagnostic log in the calling repository
-        if: always()
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: renovate-${{ matrix.mode }}-${{ github.run_id }}-${{ github.run_attempt }}
-          path: /tmp/renovate-run/renovate.jsonl
-          if-no-files-found: warn
-          retention-days: 7
+    if: ${{ github.event_name == 'workflow_dispatch' || true }}
+    uses: m11s-io/.github/.github/workflows/renovate-run.yml@main
+    with:
+      host-ref: main
+      live: ${{ true && (github.event_name != 'workflow_dispatch' || !inputs.dry-run) }}
+    secrets:
+      RENOVATE_APP_PRIVATE_KEY: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}

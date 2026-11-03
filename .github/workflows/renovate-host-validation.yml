@@ -5,7 +5,7 @@ on:
     paths:
       - renovate-config.json
       - renovate-host.cjs
-      - .github/workflows/renovate.yml
+      - .github/workflows/renovate-run.yml
       - .github/workflows/renovate-host-validation.yml
       - scripts/check-renovate-host.cjs
 

@@ -7,8 +7,8 @@ pull requests.
 
 - `renovate-config.json`: shared dependency policy inherited by repositories.
 - `renovate-host.cjs`: deployment settings for routine and security runs.
-- `.github/workflows/renovate.yml`: shared reusable workflow.
-- `.github/workflows/renovate-managed.yml` in each repository: small caller following
+- `.github/workflows/renovate-run.yml`: shared reusable workflow.
+- `.github/workflows/renovate.yml` in each repository: small caller following
   the shared workflow on `main`.
 - `scripts/check-renovate-host.cjs` and the validation workflow: checks for mode
   separation, explicit dry-run settings, and valid configuration.
