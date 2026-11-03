@@ -32,5 +32,5 @@ jobs:
           docker run --rm
           -e M11S_RENOVATE_MODE -e M11S_RENOVATE_REPOSITORY -e M11S_RENOVATE_DRY_RUN
           -v "$GITHUB_WORKSPACE:/config:ro"
-          ghcr.io/renovatebot/renovate:44.200.0
+          ghcr.io/renovatebot/renovate:44.200.0@sha256:8639eca545119147ce9114c22315129dd52794b3ea8a6767f8b0bd22606545c4
           renovate-config-validator --strict /config/renovate-host.cjs /config/renovate-config.json
