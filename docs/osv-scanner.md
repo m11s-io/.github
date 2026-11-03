@@ -82,7 +82,7 @@ establish that the repositories have no vulnerable dependencies.
 
 | Repository | Pull request |
 | --- | --- |
-| .github | [#17](https://github.com/m11s-io/.github/pull/17) |
+| .github | [#18](https://github.com/m11s-io/.github/pull/18) |
 | demo-repository | [#2](https://github.com/m11s-io/demo-repository/pull/2) |
 | docker-images | [#174](https://github.com/m11s-io/docker-images/pull/174) |
 | domain-connect-terraform-agent | [#12](https://github.com/m11s-io/domain-connect-terraform-agent/pull/12) |
