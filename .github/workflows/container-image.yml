@@ -62,17 +62,20 @@ jobs:
   build:
     runs-on: ubuntu-26.04
     timeout-minutes: ${{ inputs.timeout-minutes }}
-    env:
-      IMAGE_PUBLISH: >-
-        ${{ inputs.push && (
-          (github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && inputs.source-ref == github.sha) ||
-          (github.event_name == 'workflow_dispatch' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && inputs.source-ref == github.sha) ||
-          (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_repository.full_name == github.repository && github.event.workflow_run.head_branch == github.event.repository.default_branch && inputs.source-ref == github.event.workflow_run.head_sha) ||
-          (github.event_name == 'release' && github.event.action == 'published' && inputs.source-ref == github.sha)
-        ) }}
     permissions:
       contents: read
     steps:
+      - name: Decide publishing before preparing caller code
+        id: authorize
+        env:
+          IMAGE_PUBLISH: >-
+            ${{ inputs.push && (
+              (github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && inputs.source-ref == github.sha) ||
+              (github.event_name == 'workflow_dispatch' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && inputs.source-ref == github.sha) ||
+              (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_repository.full_name == github.repository && github.event.workflow_run.head_branch == github.event.repository.default_branch && inputs.source-ref == github.event.workflow_run.head_sha) ||
+              (github.event_name == 'release' && github.event.action == 'published' && inputs.source-ref == github.sha)
+            ) }}
+        run: printf 'publish=%s\n' "$IMAGE_PUBLISH" >> "$GITHUB_OUTPUT"
       - name: Checkout caller source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -99,7 +102,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       - name: Log in to Docker Hub
-        if: ${{ env.IMAGE_PUBLISH == 'true' }}
+        if: ${{ steps.authorize.outputs.publish == 'true' }}
         uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
         with:
           username: ${{ secrets.DOCKER_USER }}
@@ -111,12 +114,12 @@ jobs:
           file: ${{ inputs.dockerfile }}
           platforms: ${{ inputs.platforms }}
           pull: true
-          push: ${{ env.IMAGE_PUBLISH == 'true' }}
+          push: ${{ steps.authorize.outputs.publish == 'true' }}
           tags: ${{ inputs.tags }}
           cache-from: type=gha,scope=${{ inputs.cache-scope }}
           cache-to: type=gha,scope=${{ inputs.cache-scope }},mode=${{ inputs.cache-mode }}
       - name: Update Docker Hub repository overview
-        if: ${{ env.IMAGE_PUBLISH == 'true' && inputs.description != '' }}
+        if: ${{ steps.authorize.outputs.publish == 'true' && inputs.description != '' }}
         uses: peter-evans/dockerhub-description@1b9a80c056b620d92cedb9d9b5a223409c68ddfa # v5.0.0
         with:
           username: ${{ secrets.DOCKER_USER }}
