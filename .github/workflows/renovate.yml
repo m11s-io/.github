@@ -11,6 +11,26 @@ on:
         description: Allow writes after the replacement has been verified
         type: boolean
         default: false
+      mode:
+        description: Update mode; scheduled callers pass scheduled and legacy callers default to both
+        type: string
+        required: false
+        default: both
+      schedule:
+        description: Exact GitHub schedule identity from the calling workflow event
+        type: string
+        required: false
+        default: ''
+      security_cron:
+        description: Exact cron string assigned to this repository's daily security run
+        type: string
+        required: false
+        default: ''
+      routine_cron:
+        description: Exact cron string assigned to this repository's weekly routine run
+        type: string
+        required: false
+        default: ''
     secrets:
       RENOVATE_APP_PRIVATE_KEY:
         required: true
@@ -19,14 +39,35 @@ permissions:
   contents: read
 
 jobs:
+  resolve_modes:
+    runs-on: ubuntu-26.04
+    outputs:
+      matrix: ${{ steps.resolve.outputs.matrix }}
+    steps:
+      - name: Checkout shared host configuration
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: m11s-io/.github
+          ref: ${{ inputs.host-ref }}
+          persist-credentials: false
+      - name: Resolve and validate update mode
+        id: resolve
+        env:
+          MODE: ${{ inputs.mode }}
+          SCHEDULE: ${{ inputs.schedule }}
+          SECURITY_CRON: ${{ inputs.security_cron }}
+          ROUTINE_CRON: ${{ inputs.routine_cron }}
+        run: node scripts/resolve-renovate-modes.cjs "$MODE" "$SCHEDULE" "$SECURITY_CRON" "$ROUTINE_CRON" >> "$GITHUB_OUTPUT"
+
   renovate:
+    needs: resolve_modes
     runs-on: ubuntu-26.04
     timeout-minutes: 50
     strategy:
       fail-fast: false
       max-parallel: 1
       matrix:
-        mode: [security, routine]
+        mode: ${{ fromJSON(needs.resolve_modes.outputs.matrix) }}
     env:
       M11S_RENOVATE_MODE: ${{ matrix.mode }}
       M11S_RENOVATE_REPOSITORY: ${{ github.repository }}

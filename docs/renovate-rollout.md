@@ -67,9 +67,17 @@ separate and remains required. Never put private keys in Actions Variables.
 
 ## Run and maintain
 
-Live-enabled callers run hourly. Use **Actions → Renovate → Run workflow** for
-an immediate run; manual dispatch defaults to dry run. Clear that checkbox only
-when live writes are wanted. To pause schedules, restore the caller's live flag
+At steady state, managed callers run routine updates weekly and security updates
+daily. The infrastructure catalog assigns stable per-repository schedule slots,
+and each caller passes its exact `github.event.schedule` identity to select one
+mode. Adding a repository does not move existing runs. OSV scans remain daily.
+During rollout, callers that omit the mode keep the current behavior and run
+both Renovate modes.
+
+Use **Actions → Renovate → Run workflow** for an immediate run. Updated callers
+let the operator choose routine, security, or both; routine is the default
+mode, and manual dispatch defaults to dry run. Clear that checkbox only when
+live writes are wanted. To pause live writes, restore the caller's live setting
 to false. Do not reinstall Mend alongside an active writer.
 
 Both the reusable workflow reference and its `host-ref` checkout follow `main`

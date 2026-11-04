@@ -3,9 +3,15 @@ name: Renovate
 
 on:
   schedule:
-    - cron: '17 * * * *'
+    - cron: '1 3 * * *'
+    - cron: '1 4 * * 1'
   workflow_dispatch:
     inputs:
+      mode:
+        description: Which dependency update mode to run
+        type: choice
+        options: [routine, security, both]
+        default: routine
       dry-run:
         description: Inspect updates without writing to GitHub
         type: boolean
@@ -24,6 +30,10 @@ jobs:
     uses: m11s-io/.github/.github/workflows/renovate.yml@main
     with:
       host-ref: main
+      mode: ${{ github.event_name == 'schedule' && 'scheduled' || inputs.mode || 'both' }}
+      schedule: ${{ github.event.schedule || '' }}
+      security_cron: '1 3 * * *'
+      routine_cron: '1 4 * * 1'
       live: ${{ true && (github.event_name != 'workflow_dispatch' || !inputs.dry-run) }}
     secrets:
       RENOVATE_APP_PRIVATE_KEY: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}

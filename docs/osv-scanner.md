@@ -25,8 +25,8 @@ coverage of Helm chart dependencies, Terraform providers, or container images.
    `.github/workflows/osv-scanner.yml` file, using a reviewed change when it is
    not tracked by OpenTofu.
 3. Use each repository's actual default branch and run a daily scan in a
-   repository-specific staggered slot. Each infrastructure-managed caller runs
-   at the same daily slot, assigned from the active sorted repository inventory.
+   repository-specific staggered slot. The slot is stored explicitly in the
+   infrastructure catalog, so adding a repository does not move existing scans.
 4. Verify PR comparison, a default-branch full scan, and SARIF upload in Actions.
 5. Triage existing findings before making the PR check required in branch rules.
 
@@ -70,10 +70,12 @@ jobs:
 ```
 
 Use the repository's actual default branch and a daily cron. The example runs at
-06:43 UTC; infrastructure-managed callers receive staggered daily slots based
-on the active sorted repository inventory. Callers follow the shared workflow on
-`main`, so a shared-workflow merge takes effect across all repositories
-immediately. Google upstream workflows remain pinned to a release commit. The optional
+06:43 UTC; infrastructure-managed callers receive explicit, stable daily slots
+from the repository catalog. Callers follow the shared workflow on `main`, so a
+shared-workflow merge takes effect across all repositories immediately. The
+managed OSV caller is the sole source-scan schedule; avoid adding a second caller
+with the same PR, push, and daily triggers. Google upstream workflows remain
+pinned to a release commit. The optional
 `scan-args` string accepts one argument per line; do not override OSV's output
 format or output path, which the upstream workflows manage.
 
