@@ -17,7 +17,7 @@ coverage of Helm chart dependencies, Terraform providers, or container images.
 
 1. Merge shared workflow changes to `main` before enabling callers.
 2. Add the caller to repositories that need dependency scanning.
-3. Use each repository's actual default branch and stagger weekly scans.
+3. Use each repository's actual default branch. Daily scans run through Maintenance.
 4. Verify PR comparison, a default-branch full scan, and SARIF upload in Actions.
 5. Triage existing findings before making the PR check required in branch rules.
 
@@ -38,8 +38,6 @@ on:
   pull_request:
   push:
     branches: [main]
-  schedule:
-    - cron: '43 6 * * *'
   workflow_dispatch:
 
 permissions:
@@ -56,7 +54,8 @@ jobs:
     uses: m11s-io/.github/.github/workflows/osv-scanner.yml@main
 ```
 
-Use the repository's actual default branch and a staggered daily schedule.
+Use the repository's actual default branch. Keep the public event-driven caller
+unscheduled; the shared Maintenance workflow supplies the daily full scan.
 Callers follow the shared workflow on `main`, so a shared-workflow merge takes
 effect across all repositories immediately. Google upstream workflows remain
 pinned to a release commit. The optional

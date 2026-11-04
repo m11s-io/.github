@@ -2,8 +2,9 @@
 
 ## Ownership and repository profiles
 
-`infra/github/repository-policies.tf` records the intended profile and each
-repository's independent Renovate and OSV enrollment. A fork is not necessarily
+`infra/github/renovate.tf` discovers active public organization repositories for
+daily Maintenance. The `maintenance-disabled` topic excludes repositories from
+maintenance; no separate enrollment list is needed. A fork is not necessarily
 a contribution-only fork: deployment forks such as `dub`, `fider`, `gatus`, and
 `terraform-provider-nexus` remain maintained by m11s-io. The contribution
 profile currently covers `frr-k8s`, `longhorn`, and `longhorn-manager`; avoid
@@ -12,9 +13,9 @@ shared packages, images, charts, or workflows. Infrastructure repositories
 hold deployment and operator configuration. Maintained repositories are
 projects owned and developed by m11s-io.
 
-Keep the policy explicit when repository ownership or automation changes. Update
-both the repository policy and its rollout notes. Renovate and OSV enrollment
-are separate choices; do not derive one from the other or from `fork` status.
+Keep repository topics aligned with ownership when automation changes. Renovate
+and OSV run as independent jobs, so a scan failure cannot block dependency
+remediation. Do not infer contribution-only status from `fork` status.
 
 ## Changes, tests, and dependencies
 
