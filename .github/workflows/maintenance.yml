@@ -24,7 +24,7 @@ jobs:
   update:
     permissions:
       contents: read
-    uses: m11s-io/.github/.github/workflows/renovate-run.yml@main
+    uses: ./.github/workflows/renovate-run.yml
     with:
       host-ref: ${{ inputs.host-ref }}
       live: ${{ inputs.live }}
@@ -36,4 +36,4 @@ jobs:
       actions: read
       contents: read
       security-events: write
-    uses: m11s-io/.github/.github/workflows/osv-scanner.yml@main
+    uses: ./.github/workflows/osv-scanner.yml
