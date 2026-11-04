@@ -1,9 +1,7 @@
-# Daily maintenance workflow
+# Daily maintenance
 
-The reusable `maintenance.yml` workflow combines the shared Renovate update and OSV dependency scan workflows. It is intended for the docker-images and gatus pilot callers. It calls those workflows by local path so both use the same immutable shared commit selected by the caller. The two jobs run independently: an update failure does not prevent the dependency scan from running.
+Each maintained repository has one daily Maintenance schedule, with independent Renovate and OSV jobs. Pull request and default-branch dependency scans remain separate event triggers. A scan failure does not prevent remediation.
 
-The Renovate workflow performs two internal passes, security and routine, under this one daily schedule. Their existing configuration keeps the appropriate separate update cadence and cooldown behavior.
+The shared workflow follows main. Renovate retains two internal passes because routine uv resolutions use a 14-day cutoff while security fixes must bypass it. There is no weekly/daily cron router. Manual update runs default to dry-run; ordinary CI still decides whether an update is acceptable.
 
-Callers provide the shared host configuration revision and Renovate private key. `live` defaults to false so Renovate runs in dry-run mode unless a caller explicitly enables writes. The OSV job uses the existing shared scan policy and uploads SARIF when supported.
-
-This workflow does not change Renovate configuration, vulnerability policy, or any repository host configuration. The pilot callers schedule it once daily and retain manual dry-run dispatch. Wider adoption and pull request reconciliation remain deferred until the pilot is reviewed.
+Repository discovery in infra/github excludes archived/private repositories and the maintenance-disabled topic. Contribution-only forks use that topic; maintained forks retain maintenance. Existing registry destinations, product acceptance tests and publishing workflows remain local.
