@@ -44,7 +44,7 @@ on:
         default: ''
       timeout-minutes:
         type: number
-        default: 60
+        default: 360
       push:
         description: Caller requests publishing; trusted caller event/ref is checked too
         type: boolean
