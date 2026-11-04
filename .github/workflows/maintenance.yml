@@ -1,0 +1,39 @@
+name: Daily maintenance
+
+on:
+  workflow_call:
+    inputs:
+      host-ref:
+        description: Shared host configuration revision (main or a full commit SHA)
+        type: string
+        required: true
+      live:
+        description: Allow Renovate writes after the replacement has been verified
+        type: boolean
+        default: false
+    secrets:
+      RENOVATE_APP_PRIVATE_KEY:
+        required: true
+
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
+jobs:
+  update:
+    permissions:
+      contents: read
+    uses: m11s-io/.github/.github/workflows/renovate-run.yml@main
+    with:
+      host-ref: ${{ inputs.host-ref }}
+      live: ${{ inputs.live }}
+    secrets:
+      RENOVATE_APP_PRIVATE_KEY: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
+
+  scan:
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    uses: m11s-io/.github/.github/workflows/osv-scanner.yml@main
