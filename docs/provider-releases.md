@@ -7,12 +7,14 @@ metadata, and acceptance-test files remain authoritative), fetches full history
 for changelog generation, imports the caller's existing GPG signing secrets,
 and runs GoReleaser for version tags.
 
-The workflow grants `contents: write` only for its publishing job. The caller
+The workflow grants `contents: write` only for its publishing job. Each caller
 must also grant `contents: write`, because a reusable workflow cannot elevate
-the caller's token. Callers should remain tag-triggered (`v*`) and pass only the
-existing `GPG_PRIVATE_KEY` and `GPG_PASSPHRASE` secrets. The shared workflow
-checks that the invocation comes from a pushed `v` tag before running any
-steps, so a non-tag call does not receive a release job or signing operation.
+the caller's token and the organization default is read-only. The maintained
+Fider, Hugging Face, and qBittorrent callers declare that permission. Callers
+should remain tag-triggered (`v*`) and pass only the existing
+`GPG_PRIVATE_KEY` and `GPG_PASSPHRASE` secrets. The shared workflow checks that
+the invocation comes from a pushed `v` tag before running any steps, so a
+non-tag call does not receive a release job or signing operation.
 
 Callers follow `m11s-io/.github/.github/workflows/provider-release.yml@main`.
 This trusts changes merged to shared `main`; protect that branch and review
